@@ -1,0 +1,803 @@
+```text
+conecta-futuro/
+│
+├── index.html
+├── package.json
+├── README.md
+│
+├── html/
+│   ├── projetos.html
+│   ├── voluntariado.html
+│   ├── doacoes.html
+│   └── contato.html
+│
+├── css/
+│   └── style.css
+│
+├── imagens/
+│   ├── logo.webp
+│   ├── projeto-educacao.webp
+│   ├── projeto-inclusao.webp
+│   └── projeto-voluntariado.webp
+│
+└── js/
+    ├── app.js
+    ├── router.js
+    ├── templates.js
+    ├── forms.js
+    ├── storage.js
+    └── ui.js
+```
+
+**`package.json`**
+
+```json
+{
+  "name": "conecta-futuro",
+  "version": "1.4.0",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "vite": "^7.0.0"
+  }
+}
+```
+
+**`index.html`**
+
+```html
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description"
+          content="Conecta Futuro - Projetos sociais, voluntariado e transformação.">
+
+    <title>Conecta Futuro</title>
+
+    <link rel="stylesheet" href="/css/style.css">
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
+    <script type="module" src="/js/app.js"></script>
+</head>
+
+<body>
+    <a class="skip-link" href="#app">Ir para o conteúdo principal</a>
+
+    <header class="header">
+        <a href="#inicio" data-route="inicio" class="logo">
+            Conecta Futuro
+        </a>
+
+        <button
+            id="menu-toggle"
+            class="menu-toggle"
+            type="button"
+            aria-label="Abrir menu"
+            aria-expanded="false"
+            aria-controls="menu-principal">
+            ☰
+        </button>
+
+        <nav aria-label="Navegação principal">
+            <ul id="menu-principal" class="nav-menu">
+                <li><a href="#inicio" data-route="inicio">Início</a></li>
+                <li><a href="#projetos" data-route="projetos">Projetos</a></li>
+                <li><a href="#voluntariado" data-route="voluntariado">Voluntariado</a></li>
+                <li><a href="#contato" data-route="contato">Contato</a></li>
+            </ul>
+        </nav>
+
+        <button id="contraste" class="btn" type="button">
+            Alto contraste
+        </button>
+    </header>
+
+    <main id="app" tabindex="-1"></main>
+
+    <div
+        id="toast"
+        class="toast"
+        role="status"
+        aria-live="polite">
+    </div>
+
+    <footer class="footer">
+        <p>&copy; 2026 Conecta Futuro.</p>
+    </footer>
+</body>
+</html>
+```
+
+**`js/app.js`**
+
+```javascript
+import { iniciarRouter } from "./router.js";
+import { iniciarInterface } from "./ui.js";
+
+document.addEventListener("DOMContentLoaded", () => {
+    iniciarInterface();
+    iniciarRouter();
+});
+```
+
+**`js/router.js`**
+
+```javascript
+import {
+    templateInicio,
+    templateProjetos,
+    templateVoluntariado,
+    templateContato
+} from "./templates.js";
+
+import { iniciarFormularioVoluntario } from "./forms.js";
+import { fecharMenu } from "./ui.js";
+
+const routes = {
+    inicio: templateInicio,
+    projetos: templateProjetos,
+    voluntariado: templateVoluntariado,
+    contato: templateContato
+};
+
+function navegar(rota) {
+    const app = document.querySelector("#app");
+    const template = routes[rota] || routes.inicio;
+
+    app.innerHTML = template();
+
+    if (rota === "voluntariado") {
+        iniciarFormularioVoluntario();
+    }
+
+    fecharMenu();
+    app.focus();
+}
+
+export function iniciarRouter() {
+    document.addEventListener("click", (event) => {
+        const link = event.target.closest("[data-route]");
+
+        if (!link) return;
+
+        event.preventDefault();
+
+        const rota = link.dataset.route;
+        window.location.hash = rota;
+    });
+
+    window.addEventListener("hashchange", () => {
+        const rota =
+            window.location.hash.replace("#", "") || "inicio";
+
+        navegar(rota);
+    });
+
+    navegar(
+        window.location.hash.replace("#", "") || "inicio"
+    );
+}
+```
+
+**`js/templates.js`**
+
+```javascript
+const projetos = [
+    {
+        titulo: "Educação para Todos",
+        categoria: "Educação",
+        descricao: "Apoio educacional para crianças e jovens."
+    },
+    {
+        titulo: "Inclusão Digital",
+        categoria: "Tecnologia",
+        descricao: "Acesso à tecnologia e capacitação digital."
+    },
+    {
+        titulo: "Rede de Voluntários",
+        categoria: "Voluntariado",
+        descricao: "Conectando pessoas que desejam transformar comunidades."
+    }
+];
+
+export function templateInicio() {
+    return `
+        <section class="container hero">
+            <h1>Conecta Futuro</h1>
+
+            <p>
+                Conectando pessoas, projetos e oportunidades
+                para transformar o futuro.
+            </p>
+
+            <a
+                href="#projetos"
+                data-route="projetos"
+                class="btn">
+                Conheça nossos projetos
+            </a>
+        </section>
+    `;
+}
+
+export function templateProjetos() {
+    return `
+        <section class="container">
+            <h1>Nossos Projetos</h1>
+
+            <div class="grid">
+                ${projetos.map(projeto => `
+                    <article class="projeto card">
+                        <div class="card-content">
+                            <span class="badge">
+                                ${projeto.categoria}
+                            </span>
+
+                            <h2>${projeto.titulo}</h2>
+
+                            <p>${projeto.descricao}</p>
+                        </div>
+                    </article>
+                `).join("")}
+            </div>
+
+            <section class="grafico">
+                <h2>Impacto dos projetos</h2>
+                <canvas
+                    id="graficoImpacto"
+                    aria-label="Gráfico de pessoas impactadas pelos projetos">
+                </canvas>
+            </section>
+        </section>
+    `;
+}
+
+export function templateVoluntariado() {
+    return `
+        <section class="container">
+            <h1>Seja um voluntário</h1>
+
+            <form id="form-voluntario" novalidate>
+
+                <div class="form-group">
+                    <label for="nome">Nome</label>
+
+                    <input
+                        class="form-control"
+                        id="nome"
+                        name="nome"
+                        type="text"
+                        required
+                        minlength="3"
+                        aria-describedby="erro-nome">
+
+                    <span
+                        id="erro-nome"
+                        class="mensagem-erro">
+                    </span>
+                </div>
+
+                <div class="form-group">
+                    <label for="email">E-mail</label>
+
+                    <input
+                        class="form-control"
+                        id="email"
+                        name="email"
+                        type="email"
+                        required
+                        aria-describedby="erro-email">
+
+                    <span
+                        id="erro-email"
+                        class="mensagem-erro">
+                    </span>
+                </div>
+
+                <div class="form-group">
+                    <label for="telefone">Telefone</label>
+
+                    <input
+                        class="form-control"
+                        id="telefone"
+                        name="telefone"
+                        type="tel"
+                        required
+                        aria-describedby="erro-telefone">
+
+                    <span
+                        id="erro-telefone"
+                        class="mensagem-erro">
+                    </span>
+                </div>
+
+                <div class="form-group">
+                    <label for="interesse">
+                        Área de interesse
+                    </label>
+
+                    <select
+                        class="form-control"
+                        id="interesse"
+                        name="interesse"
+                        required>
+
+                        <option value="">
+                            Selecione
+                        </option>
+
+                        <option value="Educação">
+                            Educação
+                        </option>
+
+                        <option value="Tecnologia">
+                            Tecnologia
+                        </option>
+
+                        <option value="Ações sociais">
+                            Ações sociais
+                        </option>
+                    </select>
+                </div>
+
+                <button class="btn" type="submit">
+                    Enviar cadastro
+                </button>
+            </form>
+        </section>
+    `;
+}
+
+export function templateContato() {
+    return `
+        <section class="container">
+            <h1>Contato</h1>
+
+            <p>
+                Entre em contato com o Conecta Futuro
+                para conhecer nossos projetos e ações.
+            </p>
+        </section>
+    `;
+}
+```
+
+**`js/storage.js`**
+
+```javascript
+const CHAVE = "voluntarios";
+
+export function carregarVoluntarios() {
+    try {
+        return JSON.parse(localStorage.getItem(CHAVE)) || [];
+    } catch {
+        return [];
+    }
+}
+
+export function salvarVoluntario(voluntario) {
+    const voluntarios = carregarVoluntarios();
+
+    voluntarios.push(voluntario);
+
+    localStorage.setItem(
+        CHAVE,
+        JSON.stringify(voluntarios)
+    );
+}
+```
+
+**`js/forms.js`**
+
+```javascript
+import { salvarVoluntario } from "./storage.js";
+import { mostrarToast } from "./ui.js";
+
+function atualizarEstado(campo) {
+    const mensagem =
+        campo.parentElement.querySelector(".mensagem-erro");
+
+    if (campo.checkValidity()) {
+        campo.classList.remove("is-invalid");
+        campo.classList.add("is-valid");
+        campo.setAttribute("aria-invalid", "false");
+
+        if (mensagem) mensagem.textContent = "";
+
+        return true;
+    }
+
+    campo.classList.remove("is-valid");
+    campo.classList.add("is-invalid");
+    campo.setAttribute("aria-invalid", "true");
+
+    if (mensagem) {
+        mensagem.textContent =
+            "Verifique o preenchimento deste campo.";
+    }
+
+    return false;
+}
+
+export function iniciarFormularioVoluntario() {
+    const form =
+        document.querySelector("#form-voluntario");
+
+    if (!form) return;
+
+    const campos =
+        [...form.querySelectorAll(
+            "input[required], select[required]"
+        )];
+
+    campos.forEach(campo => {
+        campo.addEventListener("input", () => {
+            atualizarEstado(campo);
+        });
+
+        campo.addEventListener("change", () => {
+            atualizarEstado(campo);
+        });
+    });
+
+    form.addEventListener("submit", event => {
+        event.preventDefault();
+
+        const valido =
+            campos.every(atualizarEstado);
+
+        if (!valido) {
+            mostrarToast(
+                "Verifique os campos do formulário."
+            );
+            return;
+        }
+
+        salvarVoluntario({
+            nome: form.nome.value.trim(),
+            email: form.email.value.trim(),
+            telefone: form.telefone.value.trim(),
+            interesse: form.interesse.value
+        });
+
+        form.reset();
+
+        campos.forEach(campo => {
+            campo.classList.remove(
+                "is-valid",
+                "is-invalid"
+            );
+
+            campo.removeAttribute("aria-invalid");
+        });
+
+        mostrarToast(
+            "Cadastro realizado com sucesso!"
+        );
+    });
+}
+```
+
+**`js/ui.js`**
+
+```javascript
+export function fecharMenu() {
+    const menu =
+        document.querySelector(".nav-menu");
+
+    const botao =
+        document.querySelector("#menu-toggle");
+
+    if (!menu || !botao) return;
+
+    menu.classList.remove("active");
+    botao.setAttribute("aria-expanded", "false");
+}
+
+export function mostrarToast(mensagem) {
+    const toast =
+        document.querySelector("#toast");
+
+    if (!toast) return;
+
+    toast.textContent = mensagem;
+    toast.classList.add("active");
+
+    setTimeout(() => {
+        toast.classList.remove("active");
+    }, 3000);
+}
+
+export function iniciarInterface() {
+    const botaoMenu =
+        document.querySelector("#menu-toggle");
+
+    const menu =
+        document.querySelector(".nav-menu");
+
+    const contraste =
+        document.querySelector("#contraste");
+
+    botaoMenu?.addEventListener("click", () => {
+        const aberto =
+            menu.classList.toggle("active");
+
+        botaoMenu.setAttribute(
+            "aria-expanded",
+            String(aberto)
+        );
+    });
+
+    contraste?.addEventListener("click", () => {
+        document.body.classList.toggle(
+            "alto-contraste"
+        );
+    });
+}
+```
+
+**`css/style.css`**
+
+```css
+:root {
+    --cor-primaria: #1B5E20;
+    --cor-primaria-clara: #43A047;
+    --cor-secundaria: #1565C0;
+    --cor-destaque: #F9A825;
+    --cor-sucesso: #2E7D32;
+    --cor-erro: #C62828;
+    --cor-branco: #FFFFFF;
+    --cor-cinza-claro: #F5F5F5;
+    --cor-cinza: #757575;
+    --cor-cinza-escuro: #333333;
+    --cor-preto: #121212;
+
+    --fonte-xs: .875rem;
+    --fonte-sm: 1rem;
+    --fonte-md: 1.25rem;
+    --fonte-lg: 1.75rem;
+    --fonte-xl: 2.5rem;
+
+    --espaco-sm: .5rem;
+    --espaco-md: 1rem;
+    --espaco-lg: 1.5rem;
+    --espaco-xl: 2rem;
+    --espaco-2xl: 3rem;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    line-height: 1.5;
+    color: var(--cor-cinza-escuro);
+    background: var(--cor-branco);
+}
+
+.container {
+    width: 100%;
+    max-width: 1440px;
+    margin: 0 auto;
+    padding: var(--espaco-xl);
+}
+
+.header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--espaco-md);
+    padding: var(--espaco-md);
+    position: relative;
+}
+
+.logo {
+    color: var(--cor-primaria);
+    font-size: var(--fonte-md);
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.nav-menu {
+    display: flex;
+    align-items: center;
+    gap: var(--espaco-md);
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.nav-menu a {
+    color: var(--cor-cinza-escuro);
+    padding: .75rem;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    gap: var(--espaco-md);
+}
+
+.projeto {
+    grid-column: span 4;
+}
+
+.card {
+    padding: var(--espaco-lg);
+    border-radius: 8px;
+    background: var(--cor-cinza-claro);
+}
+
+.card-content {
+    display: flex;
+    flex-direction: column;
+    gap: var(--espaco-md);
+}
+
+.badge {
+    width: fit-content;
+    padding: .25rem .5rem;
+    font-weight: 700;
+}
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: .75rem 1.5rem;
+    border: 2px solid var(--cor-primaria);
+    border-radius: 8px;
+    background: var(--cor-primaria);
+    color: var(--cor-branco);
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.btn:hover {
+    background: var(--cor-primaria-clara);
+}
+
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible {
+    outline: 3px solid var(--cor-destaque);
+    outline-offset: 3px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: var(--espaco-sm);
+    margin-bottom: var(--espaco-md);
+}
+
+.form-control {
+    width: 100%;
+    padding: .75rem 1rem;
+    border: 2px solid var(--cor-cinza);
+    border-radius: 8px;
+}
+
+.form-control.is-valid {
+    border-color: var(--cor-sucesso);
+}
+
+.form-control.is-invalid {
+    border-color: var(--cor-erro);
+    background: #FFF5F5;
+}
+
+.mensagem-erro {
+    color: var(--cor-erro);
+    font-size: var(--fonte-xs);
+}
+
+.menu-toggle {
+    display: none;
+}
+
+.toast {
+    position: fixed;
+    right: 1rem;
+    bottom: 1rem;
+    padding: 1rem;
+    background: var(--cor-primaria);
+    color: var(--cor-branco);
+    border-radius: 8px;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.toast.active {
+    opacity: 1;
+}
+
+.skip-link {
+    position: absolute;
+    left: -9999px;
+}
+
+.skip-link:focus {
+    left: 1rem;
+    top: 1rem;
+    z-index: 1000;
+    background: var(--cor-branco);
+    padding: 1rem;
+}
+
+.footer {
+    padding: var(--espaco-xl);
+    text-align: center;
+    background: var(--cor-cinza-claro);
+}
+
+body.alto-contraste {
+    --cor-primaria: #FFFFFF;
+    --cor-branco: #000000;
+    --cor-cinza-escuro: #FFFFFF;
+    --cor-destaque: #FFFF00;
+
+    background: #000000;
+    color: #FFFFFF;
+}
+
+@media (max-width: 767px) {
+    .menu-toggle {
+        display: block;
+    }
+
+    .nav-menu {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        width: 100%;
+        flex-direction: column;
+        align-items: stretch;
+        background: var(--cor-branco);
+        max-height: 0;
+        overflow: hidden;
+    }
+
+    .nav-menu.active {
+        max-height: 600px;
+    }
+
+    .projeto {
+        grid-column: span 12;
+    }
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+    .projeto {
+        grid-column: span 6;
+    }
+}
+
+@media (min-width: 992px) {
+    .projeto {
+        grid-column: span 4;
+    }
+}
+```
+
+**Identificação da versão final**
+
+```text
+Branch de produção: main
+Release: v1.4.0
+Tag: v1.4.0
+Status: versão estável para produção
+Build: npm run build
+Diretório de produção: dist/
+Deploy: Vercel
+```
+
+Esta versão consolida a estrutura responsiva, SPA com JavaScript modular, validação de formulários, `localStorage`, acessibilidade, modo de alto contraste e preparação para build e deploy.
